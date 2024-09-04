@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -11,6 +12,8 @@ import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import Foreign.Marshal.Alloc (alloca, allocaBytes)
 import Foreign.Marshal.Utils (maybeWith, with)
+import GHC.IsList (IsList (..))
+import qualified GHC.IsList as IsList
 import GHC.IO.Exception (IOErrorType(NoSuchThing))
 import System.IO.Error (ioeSetErrorString, mkIOError)
 
@@ -245,6 +248,13 @@ defaultHints = AddrInfo {
 -- >>> addr <- NE.head <$> getAddrInfo (Just hints) (Just "127.0.0.1") (Just "http")
 -- >>> addrAddress addr
 -- 127.0.0.1:80
+getAddrInfo
+    :: (Item l ~ AddrInfo, IsList l)
+    => Maybe AddrInfo -- ^ preferred socket type or protocol
+    -> Maybe HostName -- ^ host name to look up
+    -> Maybe ServiceName -- ^ service name to look up
+    -> IO l -- ^ resolved addresses, with "best" first
+getAddrInfo hints node service = IsList.fromList . NE.toList <$> getAddrInfoNE hints node service
 
 getAddrInfoNE
     :: Maybe AddrInfo -- ^ preferred socket type or protocol
