@@ -245,6 +245,13 @@ defaultHints = AddrInfo {
 -- >>> addr <- NE.head <$> getAddrInfo (Just hints) (Just "127.0.0.1") (Just "http")
 -- >>> addrAddress addr
 -- 127.0.0.1:80
+getAddrInfo
+    :: (Applicative f, Semigroup (f AddrInfo))
+    => Maybe AddrInfo -- ^ preferred socket type or protocol
+    -> Maybe HostName -- ^ host name to look up
+    -> Maybe ServiceName -- ^ service name to look up
+    -> IO (f AddrInfo) -- ^ resolved addresses, with "best" first
+getAddrInfo hints node service = foldr1 (<>) . fmap pure <$> getAddrInfoNE hints node service
 
 getAddrInfoNE
     :: Maybe AddrInfo -- ^ preferred socket type or protocol
